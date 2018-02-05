@@ -12,3 +12,14 @@ const server = require('../src/server');
 //     done();
 //   });
 // });
+
+it('Should return 201 status code for sucessful PATCH request to like or dislike', (done) => {
+  const request = {
+    method: 'PATCH',
+    url: '/books/like/1',
+  };
+  server.inject(request, (response) => {
+    expect(response.result.status).toBe(201);
+    done();
+  });
+});

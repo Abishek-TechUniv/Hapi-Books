@@ -9,25 +9,25 @@ const resolveBooks = (values) => {
   return books;
 };
 
-const getAllRatings = (request, reply) => {
-  const ar = [];
-  ar[0] = rp('https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/allBooks');
+const promiseArray = () => {
+  const promArr = [];
+  promArr[0] = rp('https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/allBooks');
   for (let id = 1; id < 13; id += 1) {
-    ar[id] = rp(`https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/findBookById/${id}`);
+    promArr[id] = rp(`https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/findBookById/${id}`);
   }
-  Promise.all(ar).then(resolveBooks).then(data => reply({
+  return promArr;
+};
+const getAllRatings = (request, reply) => {
+  const arr = promiseArray();
+  Promise.all(arr).then(resolveBooks).then(data => reply({
     data,
     status: 200,
   }));
 };
 
 const saveValues = (request, reply) => {
-  const ar = [];
-  ar[0] = rp('https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/allBooks');
-  for (let id = 1; id < 13; id += 1) {
-    ar[id] = rp(`https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/findBookById/${id}`);
-  }
-  Promise.all(ar).then(resolveBooks).then((data) => {
+  const arr = promiseArray();
+  Promise.all(arr).then(resolveBooks).then((data) => {
     data.forEach(element => Models.Book.create({
       Author: element.Author,
       Name: element.Name,
@@ -35,8 +35,7 @@ const saveValues = (request, reply) => {
     }));
   }).then(reply({
     status: 201,
-  }))
-    .catch(reply({ status: 500 }));
+  }));
 };
 const routes = [
   {
@@ -51,12 +50,12 @@ const routes = [
   },
   {
     method: 'PATCH',
-    path: '/books/{id}/like',
+    path: '/books/like/{id}',
     handler: (request, reply) => {
-      Models.book.update(
+      Models.Book.update(
         {
-          dislike: false,
-          like: true,
+          disliked: false,
+          liked: true,
         },
         { where: { id: request.params.id } },
       ).then(() => reply({ status: 201 }));
@@ -64,12 +63,12 @@ const routes = [
   },
   {
     method: 'PATCH',
-    path: '/books/{id}/dislike',
+    path: '/books/dislike/{id}',
     handler: (request, reply) => {
-      Models.book.update(
+      Models.Book.update(
         {
-          like: false,
-          dislike: true,
+          liked: false,
+          disliked: true,
         },
         { where: { id: request.params.id } },
       ).then(() => reply({ status: 201 }));
