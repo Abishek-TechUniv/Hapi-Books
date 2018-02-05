@@ -21,14 +21,34 @@ const getAllRatings = (request, reply) => {
   }));
 };
 
-
+const saveValues = (request, reply) => {
+  const ar = [];
+  ar[0] = rp('https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/allBooks');
+  for (let id = 1; id < 13; id += 1) {
+    ar[id] = rp(`https://5gj1qvkc5h.execute-api.us-east-1.amazonaws.com/dev/findBookById/${id}`);
+  }
+  Promise.all(ar).then(resolveBooks).then((data) => {
+    data.forEach(element => Models.Book.create({
+      Author: element.Author,
+      Name: element.Name,
+      rating: element.rating,
+    }));
+  }).then(reply({
+    status: 201,
+  }))
+    .catch(reply({ status: 500 }));
+};
 const routes = [
   {
     method: 'GET',
     path: '/books',
     handler: getAllRatings,
   },
-
+  {
+    method: 'POST',
+    path: '/books/save',
+    handler: saveValues,
+  },
   {
     method: 'PATCH',
     path: '/books/{id}/like',
