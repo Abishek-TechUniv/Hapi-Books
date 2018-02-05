@@ -1,6 +1,15 @@
 const rp = require('request-promise');
 const Models = require('../models');
 
+const groupedData = (data) => {
+  const group = {};
+  data.forEach((elem) => {
+    if (group[elem.Author] === undefined) { group[elem.Author] = [elem]; }
+    group[elem.Author].push(elem);
+  });
+  return group;
+};
+
 const resolveBooks = (values) => {
   const { books } = JSON.parse(values[0]);
   books.forEach((elem, index) => {
@@ -17,10 +26,11 @@ const promiseArray = () => {
   }
   return promArr;
 };
+
 const getAllRatings = (request, reply) => {
   const arr = promiseArray();
   Promise.all(arr).then(resolveBooks).then(data => reply({
-    data,
+    data: groupedData(data),
     status: 200,
   }));
 };
@@ -37,6 +47,7 @@ const saveValues = (request, reply) => {
     status: 201,
   }));
 };
+
 const routes = [
   {
     method: 'GET',
